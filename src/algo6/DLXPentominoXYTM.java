@@ -165,7 +165,7 @@ class DLXPentominoXYTM { // represents 1 element or header
          * enter DLX search
          */
         start = System.nanoTime();
-        search(0);
+        search(7);
         ende = System.nanoTime();
         System.out.println((ende - start) / 1000000000 + "s for search");
         System.out.println(count + " possible solutions");
