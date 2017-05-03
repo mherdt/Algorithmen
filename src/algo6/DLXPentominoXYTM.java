@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Class DLXPentominoXYTM represents a matrix element of the cover matrix with value 1 links go to up down
@@ -11,9 +12,6 @@ import java.util.List;
  * matrix is sparsely coded try to do all operations very efficiently see:
  * http://en.wikipedia.org/wiki/Dancing_Links http://arxiv.org/abs/cs/0011047
  *
- * @author Phi Long Tran <191624>
- * @author Dimitri Kapcikov <191510>
- * @author Manuel Wessner <191711>
  */
 class DLXPentominoXYTM { // represents 1 element or header
 
@@ -98,77 +96,43 @@ class DLXPentominoXYTM { // represents 1 element or header
     }
 
     public static void main(String[] args) {
+      System.out.println("Input n: ");
+      Scanner s = new Scanner(System.in);
+      int pufferN = s.nextInt();
+
+      for (n = 1; n <= pufferN; n++) {
         cnt = 0; // set counter for solutions to zero
         h = new DLXPentominoXYTM(); // create header
         h.posH = 0;
         h.posV = 0;
-
-        // n = 2;
-
-        if (args.length == 0) {
-            System.out.println("No arguments - use default n=2");
-            n = 2;
-        } else {
-            try {
-                n = Integer.parseInt(args[0]);
-            } catch (NumberFormatException nfe) {
-                System.out.println("Argument is not a number, use default n=2. Error-Message: " + nfe);
-                n = 2;
-            }
-        }
-
+        count = BigInteger.ZERO;
         matrixLine = 1;
         maxNumber = n * 6;
 
         addHeader(maxNumber);
 
-    /*
-     * for (int i = 0; i < amountOfHeaders; i++) { DLXPentominoXYTMOld columnNode = gotoIndex(i);
-     * System.out.println("Header-Column: " + columnNode.posH); System.out.println("Row x: " +
-     * columnNode.posV); DLXPentominoXYTMOld verticaclNode = columnNode.D; System.out.println("Row o: " +
-     * verticaclNode.posV); do { verticaclNode = verticaclNode.D; // if (verticaclNode.posV != -1) {
-     * System.out.println("Row i: " + verticaclNode.posV); // } } while
-     * (!columnNode.equals(verticaclNode)); }
-     */
-
-
         /**
          * calculate all figure positions
          */
-        long start = System.nanoTime();
         createMono();
         calcCross();
-        // calcMono();
-        calcU_UP();
-        calcU_DOWN();
-        calcU_LEFT();
-        calcU_RIGHT();
-        calcL_R0();
-        calcL_R1();
-        calcL_R2();
-        calcL_R3();
-        calcL_R4();
-        calcL_R5();
-        calcL_R6();
-        calcL_R7();
+        calcT_UP();
+        calcT_DOWN();
+        calcT_LEFT();
+        calcT_RIGHT();
+        calcX();
+        calcY_R1();
+        calcY_R2();
+        calcY_R3();
+        calcY_R4();
+        calcY_R5();
+        calcY_R6();
+        calcY_R7();
+        calcY_R8();
 
-        long ende = System.nanoTime();
-        System.out.println((ende - start) / 100000 + "ms for matrix generation");
-
-        // DLXPentominoXYTMOld node = h.R;
-        // for (int i = 0; i < maxNumber + 1; i++) {
-        // System.out.print(node.posV + " " + node.posH + " | ");
-        // node = node.R;
-        // }
-
-        /**
-         * enter DLX search
-         */
-        start = System.nanoTime();
-        search(7);
-        ende = System.nanoTime();
-        System.out.println((ende - start) / 1000000000 + "s for search");
-        System.out.println(count + " possible solutions");
+        search(0);
+        System.out.println("a(" + n + ") = " + count);
+      }
     }
 
     /**
@@ -239,109 +203,6 @@ class DLXPentominoXYTM { // represents 1 element or header
     }
 
     /**
-     * old add node position, not used anymore, using create node instead
-     *
-     * @param posV vertical position of the node
-     * @param posH horizontal position of the node
-     */
-    private static void addNode(int posV, int posH) {
-        System.out.println("add node: posV=" + posV + " posH=" + posH);
-        DLXPentominoXYTM node = new DLXPentominoXYTM();
-        DLXPentominoXYTM temp = gotoHeaderIndex(posH); // goto header index
-        node.posH = posH;
-        node.posV = posV;
-        node.C = temp; // direct link to header
-        if (temp.D == node.C) { // add node if there are no other nodes
-            temp.U = node;
-            temp.D = node;
-            node.U = temp;
-            node.D = temp;
-            connectRight(node);
-            connectLeft(node);
-            return;
-        } else {
-            for (int i = 0; i < 6; i++) {
-                temp = temp.D;
-                if (temp.posV < posV) {
-                    temp = temp.D;
-                    if (temp == temp.C) { // add node if its the highest index
-                        temp = temp.U;
-                        temp.D = node;
-                        node.U = temp;
-                        node.D = node.C;
-                        node.C.U = node;
-                        connectRight(node);
-                        connectLeft(node);
-                        return;
-                    }
-                }
-                if (temp.posV > posV) {
-                    temp = temp.U;
-                    node.D = temp.D; // connect node to higher node
-                    temp.D.U = node; // connect higher node to node
-                    temp.D = node; // connect lower node to node
-                    node.U = temp; // connect node to lower node}
-                    connectRight(node);
-                    connectLeft(node);
-                    return;
-                }
-            }
-        }
-    }
-
-    /**
-     * connect node horizontal to right, not used anymore
-     *
-     * @param node
-     */
-    public static void connectRight(DLXPentominoXYTM node) {
-        // connection to the right
-        int posV = node.posV;
-        DLXPentominoXYTM temp = node;
-        for (int i = 0; i < indexLength; i++) {
-            temp = temp.C.R;
-            while (temp.D != temp.C) {
-                temp = temp.D;
-                if (temp.posV == posV) {
-                    node.R = temp;
-                    temp.L = node;
-                    // System.out.println("connected right " + node.posV + " " + node.posH + " mit " +
-                    // temp.posV
-                    // + " " + temp.posH);
-                    return;
-                } else {
-                }
-            }
-        }
-    }
-
-    /**
-     * connect node to the left, not used anymore
-     *
-     * @param node
-     */
-    public static void connectLeft(DLXPentominoXYTM node) {
-        // connection to the right
-        int posV = node.posV;
-        DLXPentominoXYTM temp = node;
-        for (int i = 0; i < indexLength; i++) {
-            temp = temp.C.L;
-            while (temp.D != temp.C) {
-                temp = temp.D;
-                if (temp.posV == posV) {
-                    temp.R = node;
-                    node.L = temp;
-                    // System.out.println("connected left " + node.posV + " " + node.posH + " mit " +
-                    // temp.posV
-                    // + " " + temp.posH);
-                    return;
-                } else {
-                }
-            }
-        }
-    }
-
-    /**
      * here we are calculating all the figures
      */
     public static void calcCross() {
@@ -358,102 +219,63 @@ class DLXPentominoXYTM { // represents 1 element or header
 
     }
 
-    public static void calcU_UP() {
-        calculateFiguresPosition(Arrays.asList(1, 2, 8, 13, 14), 4, 3);
+    public static void calcT_UP() {
+        calculateFiguresPosition(Arrays.asList(1, 7, 8, 9, 13), 3, 3);
     }
 
-    public static void calcU_DOWN() {
-        calculateFiguresPosition(Arrays.asList(1, 2, 7, 13, 14), 4, 3);
+    public static void calcT_DOWN() {
+        calculateFiguresPosition(Arrays.asList(3, 7, 8, 9, 15), 3, 3);
     }
 
-    public static void calcU_LEFT() {
-        calculateFiguresPosition(Arrays.asList(1, 3, 7, 9, 8), 3, 2);
+    public static void calcT_LEFT() {
+        calculateFiguresPosition(Arrays.asList(1, 2, 3, 8, 14), 3, 3);
     }
 
-    public static void calcU_RIGHT() {
-        calculateFiguresPosition(Arrays.asList(1, 2, 3, 9, 7), 3, 2);
-    }
-
-    /**
-     * |<br>
-     * |<br>
-     * |_<br>
-     */
-    public static void calcL_R0() {
-        calculateFiguresPosition(Arrays.asList(1, 2, 3, 4, 10), 2, 2);
-    }
-
-    /**
-     * ___|
-     */
-    public static void calcL_R1() {
-        calculateFiguresPosition(Arrays.asList(2, 8, 14, 20, 19), 4, 4);
+    public static void calcT_RIGHT() {
+        calculateFiguresPosition(Arrays.asList( 2, 8, 13, 14, 15), 3, 3);
     }
 
 
-    /**
-     * _<br>
-     * .|<br>
-     * .|<br>
-     * .|<br>
-     * .|
-     */
-    public static void calcL_R2() {
-        calculateFiguresPosition(Arrays.asList(1, 7, 8, 9, 10), 2, 2);
+  /**
+   *
+   */
+  public static void calcX() {
+        calculateFiguresPosition(Arrays.asList(2, 7, 8, 9, 14), 3, 3);
     }
 
-    /**
-     * .____<br>
-     * |
-     */
-    public static void calcL_R3() {
-        calculateFiguresPosition(Arrays.asList(1, 2, 13, 7, 19), 4, 4);
+  /**
+   *
+   */
+  public static void calcY_R1() {
+        calculateFiguresPosition(Arrays.asList(1, 2, 3, 4, 8), 2, 2);
     }
 
-    /**
-     * .|<br>
-     * .|<br>
-     * _|<br>
-     */
-    public static void calcL_R4() {
-        calculateFiguresPosition(Arrays.asList(7, 8, 9, 10, 4), 2, 2);
+    public static void calcY_R2() {
+        calculateFiguresPosition(Arrays.asList(2, 7, 8, 9, 10), 2, 2);
     }
 
-    /**
-     * ____<br>
-     * ****|
-     */
-    public static void calcL_R5() {
-        calculateFiguresPosition(Arrays.asList(1, 7, 13, 19, 20), 4, 4);
+    public static void calcY_R3() {
+        calculateFiguresPosition(Arrays.asList(1, 7, 13, 14, 19), 4, 4);
     }
 
-    /**
-     * |___
-     */
-    public static void calcL_R6() {
-        calculateFiguresPosition(Arrays.asList(1, 2, 8, 14, 20), 4, 4);
+    public static void calcY_R4() {
+        calculateFiguresPosition(Arrays.asList(2, 7, 8, 14, 20), 4, 4);
     }
 
-    /**
-     * ._<br>
-     * |<br>
-     * |<br>
-     * |
-     */
-    public static void calcL_R7() {
-        calculateFiguresPosition(Arrays.asList(1, 2, 3, 4, 7), 2, 2);
+    public static void calcY_R5() {
+        calculateFiguresPosition(Arrays.asList(1, 7, 8, 13, 19), 4, 4);
     }
 
+    public static void calcY_R6() {
+        calculateFiguresPosition(Arrays.asList(2, 8, 13, 14, 20), 4, 4);
+    }
 
+    public static void calcY_R7() {
+      calculateFiguresPosition(Arrays.asList(1, 2, 3, 4, 9), 2, 2);
+    }
 
-    /**
-     * old mono calculation
-     */
-    public static void calcMono() {
-        for (int i = 0; i < maxNumber; i++) {
-            addNode(matrixLine, i + 1);
-            matrixLine++;
-        }
+    public static void calcY_R8() {
+      calculateFiguresPosition(Arrays.asList(3, 7, 8, 9, 10), 2, 2);
     }
 
     /**
@@ -485,8 +307,8 @@ class DLXPentominoXYTM { // represents 1 element or header
     private static void calculateFiguresPosition(List<Integer> figures, int downShifts, int width) {
         int shiftsRight = n - width;
         if (shiftsRight > n || shiftsRight < 0) {
-            // System.out.println("no positions, cant fit figure");
-            return;
+          // System.out.println("no positions, cant fit figure");
+          return;
         }
         insertFigure(figures);
         for (int i = 0; i < downShifts; i++) {
@@ -507,7 +329,6 @@ class DLXPentominoXYTM { // represents 1 element or header
         DLXPentominoXYTM[] array = new DLXPentominoXYTM[5];
         int arrayIndex = 0;
         for (Integer integer : figures) {
-            // addNode(matrixLine, integer);
             array[arrayIndex] = createNode(matrixLine, integer);
             arrayIndex++;
         }
