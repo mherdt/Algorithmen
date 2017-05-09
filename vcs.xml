@@ -18,6 +18,10 @@
           <option name="url" value="https://redmine.hs-heilbronn.de/git/pp-2017-ss-gamingservices" />
           <option name="userName" value="" />
         </UrlAndUserName>
+        <UrlAndUserName>
+          <option name="url" value="ssh://Michael@192.168.12.6/volume1/GitProjects/Algorithmen" />
+          <option name="userName" value="" />
+        </UrlAndUserName>
       </list>
     </option>
     <option name="cloneParentDir" value="$USER_HOME$/IdeaProjects" />
